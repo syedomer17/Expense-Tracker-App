@@ -33,32 +33,39 @@ export const registerUser = async (req, res) => {
     }
 
     try {
-        //checking if the email existing or not
-        const existingUser = await User.findOne({email});
-        if(existingUser){
+        //check if email exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
             return res.status(400).json({ message: 'Email already exists' });
         }
 
-        //hashing the password
+        // hash password and create the user
         const hashPassword = await bcrypt.hash(password, 10);
-
-        //new user 
-        const user = {
+        const created = await User.create({
             fullName,
             email,
             password: hashPassword,
-            profileImageUrl,
-        }
+            profileImageUrl: profileImageUrl || null,
+        });
 
-        await User.create(user);
+        const safeUser = {
+            id: created._id,
+            fullName: created.fullName,
+            email: created.email,
+            profileImageUrl: created.profileImageUrl,
+        };
 
         res.status(201).json({
-            id: user._id,
-            user,
-            token: generateToken(user._id),
-        })
+            message: 'User registered successfully',
+            user: safeUser,
+            token: generateToken(created._id),
+        });
 
     } catch (error) {
+        // handle duplicate key error
+        if (error && error.code === 11000) {
+            return res.status(400).json({ message: 'Email already exists' });
+        }
         res.status(500).json({ message: 'Error registering user', error: error.message });
     }
 };
@@ -84,9 +91,14 @@ export const loginUser = async (req,res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        res.status(200).json({
+        const safeUser = {
             id: user._id,
-            user,
+            fullName: user.fullName,
+            email: user.email,
+            profileImageUrl: user.profileImageUrl,
+        };
+        res.status(200).json({
+            user: safeUser,
             token: generateToken(user._id),
         });
     } catch (error) {
@@ -97,7 +109,7 @@ export const loginUser = async (req,res) => {
 // get user info
 export const getUserInfo = async (req,res) => {
     try {
-        const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).select('-password');
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }

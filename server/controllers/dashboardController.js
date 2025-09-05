@@ -30,9 +30,10 @@ export const getDashboardData = async (req, res) => {
     // });
 
     // get income transation in last 60 days
+    // last 60 days (60 days * 24 hours * 60 minutes * 60 seconds * 1000 ms)
     const last60DaysIncomeTransation = await Income.find({
       userId,
-      date: { $gte: new Date(Date.now() - 60 * 24 * 60 * 1000) },
+      date: { $gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) },
     }).sort({ date: -1 });
 
     //get total income for last 60 days
@@ -42,9 +43,10 @@ export const getDashboardData = async (req, res) => {
     );
 
     //get expense transection in the last 30 days
+    // last 30 days (30 days * 24 hours * 60 minutes * 60 seconds * 1000 ms)
     const last30DaysExpenseTransation = await Expenses.find({
       userId,
-      date: { $gte: new Date(Date.now() - 30 * 24 * 60 * 1000) },
+      date: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
     }).sort({ date: -1 });
 
     //get total expense for last 30 days
