@@ -1,21 +1,43 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { LuUser, LuUpload, LuTrash } from "react-icons/lu";
 
 const ProfilePhotoSelector = ({ image, setImage }) => {
   const inputRef = useRef(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const objectUrlRef = useRef(null);
 
-  const hanldeImageChange = (event) => {
-    const file = event.target.file[0];
-
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
     if (file) {
-      //update the image state
       setImage(file);
-
+      // Revoke previous object URL if any
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
       const preview = URL.createObjectURL(file);
+      objectUrlRef.current = preview;
       setPreviewUrl(preview);
     }
   };
+
+  // Update preview when parent changes `image` (File or string URL)
+  useEffect(() => {
+    if (!image) {
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+      setPreviewUrl(null);
+      return;
+    }
+    if (image instanceof File) {
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      const preview = URL.createObjectURL(image);
+      objectUrlRef.current = preview;
+      setPreviewUrl(preview);
+    } else if (typeof image === "string") {
+      // If it's already a URL from backend
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+      setPreviewUrl(image);
+    }
+  }, [image]);
 
   const handleRemoveImage = () => {
     setImage(null);
@@ -23,7 +45,7 @@ const ProfilePhotoSelector = ({ image, setImage }) => {
   };
 
   const onChooseFile = () => {
-    inputRef.current.click();
+    inputRef.current?.click();
   };
 
   return (
@@ -32,7 +54,7 @@ const ProfilePhotoSelector = ({ image, setImage }) => {
         type="file"
         accept="image/*"
         ref={inputRef}
-        onChange={hanldeImageChange}
+        onChange={handleImageChange}
         className="hidden"
       />
       {!image ? (
