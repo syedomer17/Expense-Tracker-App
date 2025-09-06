@@ -76,7 +76,7 @@ const Home = () => {
           <div className="col-span-1">
             <RecentTransactions
               transactions={dashboardData?.recentTransactions}
-              onSeeMore={() => navigate("expense")}
+              onSeeMore={() => navigate("/income")}
             />
           </div>
           <div className="col-span-1">
