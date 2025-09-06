@@ -94,23 +94,23 @@ const Income = () => {
     }
   };
 
-  const handleDownloadIncomeDetails = () => {
+  const handleDownloadIncomeDetails = async () => {
     try {
-      const response = axiosInstance.get(API_PATHS.INCOME.DOWNLOAD_INCOME, {
-        responseType: 'blob', // Important for file download
+      const response = await axiosInstance.get(API_PATHS.INCOME.DOWNLOAD_INCOME, {
+        responseType: 'blob',
       });
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'income_details.xlsx'); //or any other extension
+      link.setAttribute('download', 'income_details.pdf');
       document.body.appendChild(link);
       link.click();
-      link.parentNode.removeChild(link);
+      link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.log("Error downloading expense details:", error);
-      toast.error(error.response?.data?.message || "Failed to download expense details");
+      console.log('Error downloading income details:', error);
+      toast.error(error.response?.data?.message || 'Failed to download income details');
     }
   };
 
