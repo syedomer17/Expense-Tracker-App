@@ -4,6 +4,7 @@ import {
   registerUser,
   loginUser,
   getUserInfo,
+  verifyOtp
 } from "../controllers/authController.js";
 
 import {protect} from "../middleware/authMiddleware.js";
@@ -12,6 +13,7 @@ import { upload } from "../middleware/uploadMiddleware.js";
 const router = express.Router();
 
 router.post("/register", registerUser);
+router.post("/verify-otp", verifyOtp);
 router.post("/login", loginUser);
 router.get("/getUser", protect, getUserInfo);
 

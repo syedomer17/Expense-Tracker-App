@@ -11,6 +11,7 @@ import authRoutes from './routes/authRoute.js';
 import incomeRoutes from './routes/incomeRoute.js';
 import expenseRoutes from './routes/expenseRoute.js';
 import dashboardRoutes from './routes/dashboardRoute.js';
+import forgotPasswordRoutes from './routes/forgotPasswordRouter.js';
 
 const __filename = fileURLToPath(import.meta.url);  
 const __dirname = path.dirname(__filename);        
@@ -35,6 +36,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/income", incomeRoutes);
 app.use("/api/v1/expense", expenseRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
+app.use("/api/v1/forgot-password", forgotPasswordRoutes);
 
 // server uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

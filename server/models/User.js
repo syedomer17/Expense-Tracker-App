@@ -6,6 +6,11 @@ const UserSchema = new mongoose.Schema(
     fullName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    emailVerified:{type: Boolean, default: false},
+    otp: { type: String, default: null },
+    otpCreatedAt: { type: Date },
+    otpExpiresAt: { type: Date },
+    passwordResetVerified: { type: Boolean, default: false },
     profileImageUrl: { type: String, default: null },
   },
   { timestamps: true }
