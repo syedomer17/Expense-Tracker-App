@@ -1,13 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import AuthLayout from "../../components/layouts/AuthLayout";
 import { Link, useNavigate } from "react-router-dom";
 import Input from "../../components/Inputs/Input";
 import { validateEmail } from "../../utils/helper";
 import { API_PATHS } from "../../utils/apiPath";
-import { useContext } from "react";
 import { UserContext } from "../../context/useContext";
 import axiosInstance from "../../utils/axiosInstance";
-import  {toast} from 'react-hot-toast'
+import { toast } from "react-hot-toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -15,7 +14,6 @@ const Login = () => {
   const [error, setError] = useState(null);
 
   const { updateUser } = useContext(UserContext);
-
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -33,7 +31,6 @@ const Login = () => {
 
     setError("");
 
-    //api call
     try {
       const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, {
         email,
@@ -90,12 +87,20 @@ const Login = () => {
           </button>
         </form>
 
-        <p className="text-[13px] text-slate-800 mt-3">
-          Don't have an account?{" "}
-          <Link className="font-medium text-primary underline" to="/signup">
-            Sign Up
+        <div className="flex justify-between mt-3 text-[13px] text-slate-800">
+          <p>
+            Don't have an account?{" "}
+            <Link className="font-medium text-primary underline" to="/signup">
+              Sign Up
+            </Link>
+          </p>
+          <Link
+            to="/forgot-password/request"
+            className="font-medium text-primary underline"
+          >
+            Forgot Password?
           </Link>
-        </p>
+        </div>
       </div>
     </AuthLayout>
   );

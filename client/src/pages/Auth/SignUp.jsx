@@ -8,16 +8,16 @@ import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPath";
 import { UserContext } from "../../context/useContext";
 import uploadImage from "../../utils/uploadImage";
+import toast from "react-hot-toast";   // ✅ import toast
 
 const SignUp = () => {
   const [profilePic, setProfilePic] = useState(null);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState(null);
 
-  const {updateUser} = useContext(UserContext);
+  const { updateUser } = useContext(UserContext);
   const navigate = useNavigate();
 
   const handleSignUp = async (e) => {
@@ -25,28 +25,27 @@ const SignUp = () => {
 
     let profileImageUrl = "";
 
-    if(!fullName){
-      setError("Please enter your name.")
+    // ✅ validation with toast
+    if (!fullName) {
+      toast.error("Please enter your name.");
       return;
     }
 
-    if(!validateEmail(email)){
-      setError("Please enter a valid email.")
+    if (!validateEmail(email)) {
+      toast.error("Please enter a valid email.");
       return;
     }
 
-    if(!password){
-      setError("Please enter your password.")
+    if (!password) {
+      toast.error("Please enter your password.");
       return;
     }
 
-    setError("")
+    setError("");
 
-    //signUp api
     try {
-
       // upload image if present
-      if(profilePic){
+      if (profilePic) {
         const imUploadRes = await uploadImage(profilePic);
         profileImageUrl = imUploadRes.imageUrl;
       }
@@ -56,24 +55,29 @@ const SignUp = () => {
         email,
         password,
         profileImageUrl,
-      })
+      });
 
-      const { token, user } = response.data;
+      const { token, user, message } = response.data;
 
-      if(token){
+      // ✅ Show success toast
+      toast.success(message || "Signup successful! Please verify your email.");
+
+      // ✅ update context if token is returned
+      if (token) {
         localStorage.setItem("token", token);
         updateUser(user);
-        navigate("/dashboard");
       }
+
+      // ✅ Always navigate to verify page
+      navigate("/verify-otp", { state: { email } });
     } catch (error) {
-      if(error.response && error.response.data.message){
-        setError(error.response.data.message);
-      }else{
-        setError("Something went wrong. Please try again later.");
-      }
-      
+      const errMsg =
+        error.response?.data?.message || "Something went wrong. Please try again later.";
+      setError(errMsg);
+      toast.error(errMsg); // ✅ show error toast
     }
   };
+
   return (
     <AuthLayout>
       <div className="lg:w-[100%] h-auto md:h-full mt-10 md:mt-0 flex flex-col justify-center">
@@ -81,7 +85,7 @@ const SignUp = () => {
         <p className="text-xs text-slate-700 mt-[5px] wb-6">
           Join us today by entering your details below.
         </p>
-  <form onSubmit={handleSignUp}>
+        <form onSubmit={handleSignUp}>
           <ProfilePhotoSelector image={profilePic} setImage={setProfilePic} />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

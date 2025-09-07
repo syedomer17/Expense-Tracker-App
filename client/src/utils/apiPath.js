@@ -6,6 +6,14 @@ export const API_PATHS = {
     LOGIN: "/api/v1/auth/login",
     SIGNUP: "/api/v1/auth/register",
     GE_USER_INFO: "/api/v1/auth/getUser",
+    VERIFY_OTP: "/api/v1/auth/verify-otp",
+    RESEND_OTP: "/api/v1/auth/resend-otp",
+    LOGOUT: "/api/v1/auth/logout",
+    },
+    FORGOTPASSWORD: {
+    REQUEST_OTP: "/api/v1/forgot-password/request-otp",
+    VERIFY_OTP: "/api/v1/forgot-password/verify-otp",
+    RESET_PASSWORD: "/api/v1/forgot-password/reset-password",
     },
     DASHBOARD: {
     GET_DATA: '/api/v1/dashboard'

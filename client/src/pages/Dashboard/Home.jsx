@@ -60,14 +60,14 @@ const Home = () => {
             icon={<IoMdCard />}
             label="Total Income"
             value={addThousandSeparator(dashboardData?.totalIncome || 0)}
-            color="bg-primary"
+            color="bg-orange-500"
           />
 
           <InfoCard
             icon={<IoMdCard />}
             label="Total Expense"
             value={addThousandSeparator(dashboardData?.totalExpense || 0)}
-            color="bg-primary"
+            color="bg-red-500"
           />
         </div>
 

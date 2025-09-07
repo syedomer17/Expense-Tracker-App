@@ -12,6 +12,10 @@ import Income from "./pages/Dashboard/Income";
 import Expense from "./pages/Dashboard/Expense";
 import UserProvider from "./context/useContext";
 import { Toaster } from "react-hot-toast";
+import VerifyOtp from "./pages/Auth/VerifyOtp";
+import RequestOtpPage from "./pages/forgot-password/request";
+import ResetPasswordPage from "./pages/forgot-password/ResetPasswordPage";
+import VerifyOtpPage  from "./pages/forgot-password/VerifyOtpPage";
 
 const App = () => {
   return (
@@ -33,6 +37,38 @@ const App = () => {
               element={
                 <PublicRoute>
                   <SignUp />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/verify-otp"
+              element={
+                <PublicRoute>
+                  <VerifyOtp />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/forgot-password/request"
+              element={
+                <PublicRoute>
+                  <RequestOtpPage />
+                </PublicRoute>
+              }
+            />
+            <Route
+            path='/forgot-password/verify'
+            element={
+              <PublicRoute>
+                <VerifyOtpPage />
+              </PublicRoute>
+            }
+            />
+            <Route
+              path="/forgot-password/reset"
+              element={
+                <PublicRoute>
+                  <ResetPasswordPage />
                 </PublicRoute>
               }
             />

@@ -1,13 +1,12 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
-import dotenv from 'dotenv';
+import env from '../config/env.js';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 
-dotenv.config();
 
-const jwtSecret = process.env.JWT_SECRET;
+const jwtSecret = env.JWT_SECRET;
 
 const generateToken = (id) => {
     if (!jwtSecret) {
@@ -72,13 +71,13 @@ export const registerUser = async (req, res) => {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASSWORD,
+                user: env.EMAIL_USER,
+                pass: env.EMAIL_PASSWORD,
             },
         })
 
         await transporter.sendMail({
-            from: process.env.EMAIL_USER,
+            from: env.EMAIL_USER,
             to: created.email,
             subject: 'Verify your email',
             html: `<p>Your OTP for email verification is <b>${otp}</b>. It is valid for 10 minutes.</p>`,
@@ -201,6 +200,54 @@ export const verifyOtp = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const resendOtp = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: "Please provide email" });
+        }
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.emailVerified === true) {
+            return res.status(400).json({ message: "Email already verified" });
+        }
+        // generate new otp
+        const otp = crypto.randomInt(100000, 999999);
+        const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+        const otpCreatedAt = new Date();
+        
+        user.otp = otp;
+        user.otpExpiresAt = otpExpiresAt;
+        user.otpCreatedAt = otpCreatedAt;   
+        await user.save();
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: env.EMAIL_USER,
+                pass: env.EMAIL_PASSWORD,
+            },
+        })
+
+        await transporter.sendMail({
+            from: env.EMAIL_USER,
+            to: user.email,
+            subject: 'Verify your email',
+            html: `<p>Your OTP for email verification is <b>${otp}</b>. It is valid for 10 minutes.</p>`,
+        })
+
+        res.status(200).json({ message: "OTP resent successfully" });
+    } catch (error) {
+        res.status(500).json({ message: 'Error resending OTP', error: error.message });
+    }
+}
 
 // get user info
 export const getUserInfo = async (req,res) => {

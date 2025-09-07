@@ -2,8 +2,7 @@ import User from "../models/User.js";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 import bcrypt from 'bcryptjs';
-import dotenv from "dotenv";
-dotenv.config();
+import env from "../config/env.js";
 
 // Request OTP for password reset
 
@@ -34,13 +33,13 @@ export const request_otp = async (req, res) => {
     const transporter = nodemailer.createTransport({
         service: 'Gmail',
         auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASSWORD
+            user: env.EMAIL_USER,
+            pass: env.EMAIL_PASSWORD
         }
     });
 
     await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+        from: env.EMAIL_USER,
         to: email,
         subject: 'Your Password Reset OTP',
         text: `Your OTP for password reset is: ${otp}. It is valid for 10 minutes.`

@@ -1,5 +1,4 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import env from './config/env.js';
 
 import express from 'express';
 import cors from 'cors';
@@ -41,14 +40,14 @@ app.use("/api/v1/forgot-password", forgotPasswordRoutes);
 // server uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-const PORT = process.env.PORT || 5000;
+const PORT = env.PORT || 8000;
 
 // Ensure critical envs are present before starting the server
-if (!process.env.JWT_SECRET) {
+if (!env.JWT_SECRET) {
     console.error('FATAL: JWT_SECRET is not configured. Set it in your .env.');
     process.exit(1);
 }
-if (!process.env.MONGO_URL) {
+if (!env.MONGO_URL) {
     console.error('FATAL: MONGO_URL is not configured. Set it in your .env.');
     process.exit(1);
 }
