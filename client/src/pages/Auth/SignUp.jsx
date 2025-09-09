@@ -57,14 +57,13 @@ const SignUp = () => {
         profileImageUrl,
       });
 
-      const { token, user, message } = response.data;
+      const { user, message } = response.data;
 
       // ✅ Show success toast
       toast.success(message || "Signup successful! Please verify your email.");
 
-      // ✅ update context if token is returned
-      if (token) {
-        localStorage.setItem("token", token);
+      // ✅ update context if user is returned
+      if (user) {
         updateUser(user);
       }
 

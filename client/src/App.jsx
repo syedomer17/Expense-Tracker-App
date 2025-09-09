@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -10,12 +10,13 @@ import SignUp from "./pages/Auth/SignUp";
 import Home from "./pages/Dashboard/Home";
 import Income from "./pages/Dashboard/Income";
 import Expense from "./pages/Dashboard/Expense";
-import UserProvider from "./context/useContext";
+import UserProvider, { UserContext } from "./context/useContext";
 import { Toaster } from "react-hot-toast";
 import VerifyOtp from "./pages/Auth/VerifyOtp";
 import RequestOtpPage from "./pages/forgot-password/request";
 import ResetPasswordPage from "./pages/forgot-password/ResetPasswordPage";
-import VerifyOtpPage  from "./pages/forgot-password/VerifyOtpPage";
+import VerifyOtpPage from "./pages/forgot-password/VerifyOtpPage";
+import Cookies from "js-cookie"; // ✅ for reading cookies
 
 const App = () => {
   return (
@@ -57,12 +58,12 @@ const App = () => {
               }
             />
             <Route
-            path='/forgot-password/verify'
-            element={
-              <PublicRoute>
-                <VerifyOtpPage />
-              </PublicRoute>
-            }
+              path="/forgot-password/verify"
+              element={
+                <PublicRoute>
+                  <VerifyOtpPage />
+                </PublicRoute>
+              }
             />
             <Route
               path="/forgot-password/reset"
@@ -113,22 +114,29 @@ const App = () => {
 
 export default App;
 
+// ✅ Root redirection based on cookie + context
 const Root = () => {
-  const isAuthenticated = !!localStorage.getItem("token");
+  const { user } = useContext(UserContext);
+  const accessToken = Cookies.get("accessToken"); // from cookie
+  const isAuthenticated = !!user || !!accessToken;
 
-  return isAuthenticated ? (
-    <Navigate to="/dashboard" />
-  ) : (
-    <Navigate to="/login" />
-  );
+  return isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />;
 };
 
+// ✅ ProtectedRoute: check cookie before allowing access
 const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = !!localStorage.getItem("token");
+  const { user } = useContext(UserContext);
+  const accessToken = Cookies.get("accessToken");
+
+  const isAuthenticated = !!user || !!accessToken;
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
+// ✅ PublicRoute: if cookie exists, redirect to dashboard
 const PublicRoute = ({ children }) => {
-  const isAuthenticated = !!localStorage.getItem("token");
+  const { user } = useContext(UserContext);
+  const accessToken = Cookies.get("accessToken");
+
+  const isAuthenticated = !!user || !!accessToken;
   return isAuthenticated ? <Navigate to="/dashboard" replace /> : children;
 };

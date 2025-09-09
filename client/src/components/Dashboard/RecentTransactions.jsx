@@ -24,7 +24,7 @@ const RecentTransactions = ({ transactions, onSeeMore }) => {
       <div className="mt-6 flex-1">
         {transactions?.length > 0 && (
           <ul className="space-y-4">
-            {transactions.slice(0, 5).map((item) => (
+            {transactions.slice(0, 4).map((item) => (
               <TransactionInfoCard
                 key={item._id || item.id}
                 title={item.type === 'expense' ? item.category : item.source}

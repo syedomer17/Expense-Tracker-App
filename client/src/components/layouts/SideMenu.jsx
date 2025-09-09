@@ -4,6 +4,8 @@ import { useContext } from "react";
 import { UserContext } from "../../context/useContext.jsx";
 import { useNavigate } from "react-router-dom";
 import CharAvatar from "../Cards/CharAvatar.jsx";
+import axiosInstance from "@/utils/axiosInstance.js";
+import { API_PATHS } from "@/utils/apiPath.js";
 
 const SideMenu = ({ activeMenu }) => {
   const { user, clearUser } = useContext(UserContext);
@@ -18,8 +20,12 @@ const SideMenu = ({ activeMenu }) => {
     navigate(path);
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
+  const handleLogout = async () => {
+    try {
+      await axiosInstance.post(API_PATHS.AUTH.LOGOUT);
+    } catch (e) {
+      // ignore error
+    }
     clearUser();
     navigate("/login");
   };

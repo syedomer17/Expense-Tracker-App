@@ -36,18 +36,15 @@ const Login = () => {
         email,
         password,
       });
-      const { token, user } = response.data;
+      const { user } = response.data;
 
       if (response.status === 200 || response.status === 201) {
         toast.success("Login Successful");
-      }
-
-      if (token) {
-        localStorage.setItem("token", token);
         updateUser(user);
         navigate("/dashboard");
       }
     } catch (error) {
+      console.log(error)
       if (error.response && error.response.data.message) {
         setError(error.response.data.message);
       } else {

@@ -9,16 +9,9 @@ const useUserAuth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If already have user, do nothing
-    if (user) return;
 
-    // If no token, redirect to login immediately
-    const token = localStorage.getItem('token');
-    if (!token) {
-      clearUser();
-      navigate('/login');
-      return;
-    }
+  // If already have user, do nothing
+  if (user) return;
 
     let isMounted = true;
 
