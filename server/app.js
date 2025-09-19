@@ -92,8 +92,15 @@ if (cluster.isPrimary) {
   app.use("/api/v1/dashboard", dashboardRoutes);
   app.use("/api/v1/forgot-password", forgotPasswordRoutes);
 
+  app.use(express.static(path.join(__dirname, "dist")));
+
   // Static uploads folder
   app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+  // Fallback route for SPA (React/Vite Router)
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
+});
 
   // Global error handler
   app.use((err, req, res, next) => {
@@ -103,6 +110,7 @@ if (cluster.isPrimary) {
       message: err.message || "Internal Server Error",
     });
   });
+
 
   // Start server
   app.listen(PORT, () => {
