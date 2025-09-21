@@ -7,8 +7,8 @@ import env from "./config/env.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import express from "express";
-import path from "path";
 import { fileURLToPath } from "url";
+import path from "path";
 
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoute.js";
@@ -20,7 +20,8 @@ import forgotPasswordRoutes from "./routes/forgotPasswordRouter.js";
 // Security and performance middlewares
 import limiter from "./limits/rateLimit.js";
 
-// To get __dirname in ES module scope
+
+// Correct way to define __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -92,22 +93,19 @@ if (cluster.isPrimary) {
   app.use("/api/v1/dashboard", dashboardRoutes);
   app.use("/api/v1/forgot-password", forgotPasswordRoutes);
 
-  app.get("/", (req, res) => {
-    res.send("Server is running...");
-  });
-
   // Serve static assets in production
   // Uncomment the following lines if you have a frontend build to serve  
 
-  app.use(express.static(path.join(__dirname, "dist")));
+ // Serve static assets in production
+app.use(express.static(path.join(__dirname, "dist")));
 
-  // Static uploads folder
-  app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Static uploads folder
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-  // Fallback route for SPA (React/Vite Router)
-  app.get("/*", (req, res) => {
-    res.sendFile(path.join(__dirname, "dist", "index.html"));
-  });
+// Fallback route for SPA (React/Vite Router)
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
+});
 
   // Global error handler
   app.use((err, req, res, next) => {
@@ -121,7 +119,7 @@ if (cluster.isPrimary) {
   // Start server
   app.listen(PORT, () => {
     console.log(
-      `🚀 Worker ${process.pid} started. Server running on http://localhost:${PORT}`
+      `🚀 Worker ${process.pid} started. Server running on ${env.BACKEND_URL}:${PORT}`
     );
   });
 }
