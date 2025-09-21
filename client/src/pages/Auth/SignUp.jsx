@@ -63,12 +63,14 @@ const SignUp = () => {
       toast.success(message || "Signup successful! Please verify your email.");
 
       // ✅ update context if user is returned
-      if (user) {
-        updateUser(user);
-      }
+      // if (user) {
+      //   updateUser(user);
+      // }
 
       // ✅ Always navigate to verify page
-      navigate("/verify-otp", { state: { email } });
+      setTimeout(()=>{
+        navigate("/verify-otp", { state: { email } });
+      }, 1000);
     } catch (error) {
       const errMsg =
         error.response?.data?.message || "Something went wrong. Please try again later.";

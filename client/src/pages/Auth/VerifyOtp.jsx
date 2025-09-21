@@ -99,6 +99,8 @@ export default function VerifyEmail() {
         setOtp(Array(6).fill(""));
         setCountdown(60);
         inputsRef.current[0]?.focus();
+        // ✅ update user in context here
+        updateUser(response.data.user); // <--- add this line
       } else {
         toast.error(response.data.error || "Failed to resend OTP.");
       }
@@ -143,7 +145,9 @@ export default function VerifyEmail() {
             {countdown > 0 ? (
               <p>
                 Resend OTP in{" "}
-                <span className="font-semibold text-gray-800">{countdown}s</span>
+                <span className="font-semibold text-gray-800">
+                  {countdown}s
+                </span>
               </p>
             ) : (
               <Button
