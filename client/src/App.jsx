@@ -136,7 +136,15 @@ const ProtectedRoute = ({ children }) => {
 const PublicRoute = ({ children }) => {
   const { user } = useContext(UserContext);
   const accessToken = Cookies.get("accessToken");
+  const location = window.location.pathname;
 
   const isAuthenticated = !!user || !!accessToken;
+
+  // ✅ Special case: allow verify-otp even if authenticated
+  if (location === "/verify-otp") {
+    return children;
+  }
+
   return isAuthenticated ? <Navigate to="/dashboard" replace /> : children;
 };
+
