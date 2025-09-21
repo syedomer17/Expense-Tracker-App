@@ -1,7 +1,7 @@
 // apiPath.js
 
 // Ensure this matches your backend server port
-export const BASE_URL = "http://localhost:8000";
+export const BASE_URL = "https://trackify.syedomer.xyz";
 
 export const API_PATHS = {
   AUTH: {
