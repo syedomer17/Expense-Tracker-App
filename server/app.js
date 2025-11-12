@@ -1,5 +1,3 @@
-import cluster from "cluster";
-import os from "os";
 import morgan from "morgan";
 import compression from "compression";
 import helmet from "helmet";
@@ -26,7 +24,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = env.PORT || 8000;
-const numCPUs = os.cpus().length;
 
 // Check critical envs before starting
 if (!env.JWT_SECRET) {
@@ -38,65 +35,42 @@ if (!env.MONGO_URL) {
   process.exit(1);
 }
 
-if (cluster.isPrimary) {
-  console.log(`Primary process ${process.pid} is running`);
-  console.log(`Forking server into ${numCPUs} workers...\n`);
+// Worker process: run Express app
+const app = express();
 
-  // Fork workers
-  for (let i = 0; i < numCPUs; i++) {
-    cluster.fork();
-  }
+// Middlewares
+app.use(morgan("dev"));
+app.use(compression());
+app.use(helmet());
 
-  // Restart workers if they die
-  cluster.on("exit", (worker, code, signal) => {
-    console.error(
-      `❌ Worker ${worker.process.pid} died (code: ${code}, signal: ${signal})`
-    );
-    console.log("🔄 Restarting new worker...");
-    cluster.fork();
-  });
+app.use(
+  cors({
+    origin: env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-  // Log when workers are online
-  cluster.on("online", (worker) => {
-    console.log(`✅ Worker ${worker.process.pid} is online`);
-  });
-} else {
-  // Worker process: run Express app
-  const app = express();
+app.use(limiter);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-  // Middlewares
-  app.use(morgan("dev"));
-  app.use(compression());
-  app.use(helmet());
+// Connect DB
+connectDB();
 
-  app.use(
-    cors({
-      origin: env.CLIENT_URL || "http://localhost:5173",
-      credentials: true,
-      methods: ["GET", "POST", "PUT", "DELETE"],
-      allowedHeaders: ["Content-Type", "Authorization"],
-    })
-  );
+// Routes
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/income", incomeRoutes);
+app.use("/api/v1/expense", expenseRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes);
+app.use("/api/v1/forgot-password", forgotPasswordRoutes);
 
-  app.use(limiter);
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-  app.use(cookieParser());
+// Serve static assets in production
+// Uncomment the following lines if you have a frontend build to serve  
 
-  // Connect DB
-  connectDB();
-
-  // Routes
-  app.use("/api/v1/auth", authRoutes);
-  app.use("/api/v1/income", incomeRoutes);
-  app.use("/api/v1/expense", expenseRoutes);
-  app.use("/api/v1/dashboard", dashboardRoutes);
-  app.use("/api/v1/forgot-password", forgotPasswordRoutes);
-
-  // Serve static assets in production
-  // Uncomment the following lines if you have a frontend build to serve  
-
- // Serve static assets in production
+// Serve static assets in production
 app.use(express.static(path.join(__dirname, "dist")));
 
 // Static uploads folder
@@ -107,19 +81,18 @@ app.get("/*", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
-  // Global error handler
-  app.use((err, req, res, next) => {
-    console.error(`🔥 Error in worker ${process.pid}:`, err.stack);
-    res.status(err.status || 500).json({
-      success: false,
-      message: err.message || "Internal Server Error",
-    });
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error(`🔥 Error in worker ${process.pid}:`, err.stack);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
   });
+});
 
-  // Start server
-  app.listen(PORT, () => {
-    console.log(
-      `🚀 Worker ${process.pid} started. Server running on ${env.BACKEND_URL}:${PORT}`
-    );
-  });
-}
+// Start server
+app.listen(PORT, () => {
+  console.log(
+    `🚀 Server running on ${env.BACKEND_URL}:${PORT}`
+  );
+});
