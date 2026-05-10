@@ -60,7 +60,7 @@ export function AppShell({ user, children }: AppShellProps) {
                             href="/dashboard"
                             className="flex items-center gap-2 lg:hidden"
                         >
-                            <span className="text-sm font-semibold tracking-tight">
+                            <span className="font-display text-base font-medium tracking-tight">
                                 Ledger
                             </span>
                         </Link>

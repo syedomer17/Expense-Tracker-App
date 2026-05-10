@@ -1,15 +1,31 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ResetForm } from "./reset-form";
 import { AuthCard } from "@/components/auth/auth-card";
 
-export const metadata = { title: "Reset password — Ledger" };
+export const metadata: Metadata = {
+    title: "Reset password",
+    description:
+        "Set a new password for your Ledger account using the reset code we emailed to you.",
+    alternates: { canonical: "/reset-password" },
+    robots: { index: false, follow: false },
+};
 
 export default function ResetPasswordPage() {
     return (
         <AuthCard
-            title="Set a new password"
-            description="Enter your reset code and pick a new password."
+            eyebrow="Account recovery"
+            title={
+                <>
+                    Set a{" "}
+                    <em className="not-italic font-display italic text-muted-foreground">
+                        new
+                    </em>{" "}
+                    password.
+                </>
+            }
+            description="Enter the 6-digit code from your email and choose a new password."
             footer={
                 <span>
                     Back to{" "}

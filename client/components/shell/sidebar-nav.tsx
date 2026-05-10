@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Sparkles } from "lucide-react";
+import { LogOut } from "lucide-react";
 import toast from "react-hot-toast";
 import { PRIMARY_NAV } from "@/components/shell/nav-config";
 import { api } from "@/lib/api";
@@ -38,16 +38,13 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
             <Link
                 href="/dashboard"
                 onClick={onNavigate}
-                className="flex items-center gap-2.5 px-2 py-1"
+                className="flex flex-col gap-0.5 px-2 py-1"
             >
-                <div className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-sm">
-                    <Sparkles className="size-4" />
+                <div className="font-display text-base font-medium tracking-tight">
+                    Ledger
                 </div>
-                <div className="leading-tight">
-                    <div className="text-sm font-semibold tracking-tight">Ledger</div>
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        Premium tracker
-                    </div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                    Premium tracker
                 </div>
             </Link>
 

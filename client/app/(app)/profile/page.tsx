@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { CalendarDays, KeyRound, Mail, ShieldCheck, UserRound } from "lucide-react";
 import {
@@ -16,7 +17,13 @@ import { PasswordForm } from "@/components/profile/password-form";
 import { serverFetch } from "@/lib/server-fetch";
 import { initials, formatDate } from "@/lib/format";
 
-export const metadata = { title: "Profile — Ledger" };
+export const metadata: Metadata = {
+    title: "Profile",
+    description:
+        "Manage your account details, update your email, and change your password.",
+    alternates: { canonical: "/profile" },
+    robots: { index: false, follow: false },
+};
 export const dynamic = "force-dynamic";
 
 interface MeResponse {

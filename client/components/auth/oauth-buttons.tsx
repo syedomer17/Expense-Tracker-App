@@ -47,7 +47,7 @@ function GoogleIcon({ className }: { className?: string }) {
 
 export function OAuthButtons() {
     return (
-        <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-2">
             <form
                 action={async () => {
                     "use server";
@@ -58,10 +58,10 @@ export function OAuthButtons() {
                     type="submit"
                     variant="outline"
                     size="lg"
-                    className="h-11 w-full text-sm"
+                    className="h-11 w-full gap-2 text-sm font-medium"
                 >
                     <GoogleIcon className="size-4" />
-                    Continue with Google
+                    Google
                 </Button>
             </form>
             <form
@@ -74,21 +74,21 @@ export function OAuthButtons() {
                     type="submit"
                     variant="outline"
                     size="lg"
-                    className="h-11 w-full text-sm"
+                    className="h-11 w-full gap-2 text-sm font-medium"
                 >
                     <GitHubIcon className="size-4" />
-                    Continue with GitHub
+                    GitHub
                 </Button>
             </form>
         </div>
     );
 }
 
-export function AuthDivider({ label = "or" }: { label?: string }) {
+export function AuthDivider({ label = "or continue with email" }: { label?: string }) {
     return (
-        <div className="relative my-2 flex items-center">
+        <div className="relative my-1 flex items-center">
             <div className="flex-1 border-t border-border/60" />
-            <span className="px-3 text-[11px] uppercase tracking-wider text-muted-foreground">
+            <span className="font-mono px-3 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                 {label}
             </span>
             <div className="flex-1 border-t border-border/60" />

@@ -1,15 +1,31 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { VerifyEmailForm } from "./verify-form";
 import { AuthCard } from "@/components/auth/auth-card";
 
-export const metadata = { title: "Verify email — Ledger" };
+export const metadata: Metadata = {
+    title: "Verify email",
+    description:
+        "Confirm your email address with the 6-digit code we sent to your inbox to activate your Ledger account.",
+    alternates: { canonical: "/verify-email" },
+    robots: { index: false, follow: false },
+};
 
 export default function VerifyEmailPage() {
     return (
         <AuthCard
-            title="Verify your email"
-            description="Enter the 6-digit code we sent to your inbox."
+            eyebrow="Almost there"
+            title={
+                <>
+                    Verify your{" "}
+                    <em className="not-italic font-display italic text-muted-foreground">
+                        email
+                    </em>
+                    .
+                </>
+            }
+            description="Enter the 6-digit code we sent to your inbox to activate your account."
             footer={
                 <span>
                     Wrong account?{" "}
