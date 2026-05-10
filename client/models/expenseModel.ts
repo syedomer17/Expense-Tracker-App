@@ -1,5 +1,7 @@
 import mongoose, { Schema, type Model, type HydratedDocument } from "mongoose";
 
+export type PaymentMethod = "upi" | "cash" | "both";
+
 export interface IExpense {
     description: string;
     amount: number;
@@ -7,6 +9,9 @@ export interface IExpense {
     date: Date;
     userId: mongoose.Types.ObjectId;
     type: "expense";
+    paymentMethod?: PaymentMethod;
+    upiAmount?: number;
+    cashAmount?: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -47,6 +52,21 @@ const expenseSchema = new Schema<IExpense>(
             enum: ["expense"],
             default: "expense",
             immutable: true,
+        },
+        paymentMethod: {
+            type: String,
+            enum: ["upi", "cash", "both"],
+            required: false,
+        },
+        upiAmount: {
+            type: Number,
+            min: 0,
+            required: false,
+        },
+        cashAmount: {
+            type: Number,
+            min: 0,
+            required: false,
         },
     },
     { timestamps: true }

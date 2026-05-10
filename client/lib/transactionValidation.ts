@@ -1,10 +1,15 @@
 import type { Types } from "mongoose";
 
+export type PaymentMethod = "upi" | "cash" | "both";
+
 export interface TransactionInput {
     description: string;
     amount: number;
     category: string;
     date: Date;
+    paymentMethod?: PaymentMethod;
+    upiAmount?: number;
+    cashAmount?: number;
 }
 
 export type ParseResult<T> =
@@ -52,6 +57,64 @@ function parseCategory(value: unknown): ParseResult<string> {
     return { ok: true, data: trimmed };
 }
 
+function parsePaymentMethod(value: unknown): ParseResult<PaymentMethod> {
+    if (value !== "upi" && value !== "cash" && value !== "both") {
+        return { ok: false, message: "paymentMethod must be 'upi', 'cash', or 'both'" };
+    }
+    return { ok: true, data: value };
+}
+
+function parseSplitAmount(value: unknown, field: string): ParseResult<number> {
+    if (value === undefined || value === null || value === "") {
+        return { ok: true, data: 0 };
+    }
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+        return { ok: false, message: `${field} must be a finite number` };
+    }
+    if (value < 0) return { ok: false, message: `${field} must be non-negative` };
+    if (value > MAX_AMOUNT) return { ok: false, message: `${field} is too large` };
+    return { ok: true, data: value };
+}
+
+interface PaymentSplit {
+    paymentMethod: PaymentMethod;
+    upiAmount: number;
+    cashAmount: number;
+    amount: number;
+}
+
+function parsePaymentSplit(body: Record<string, unknown>): ParseResult<PaymentSplit> {
+    const method = parsePaymentMethod(body.paymentMethod);
+    if (!method.ok) return method;
+    const upi = parseSplitAmount(body.upiAmount, "upiAmount");
+    if (!upi.ok) return upi;
+    const cash = parseSplitAmount(body.cashAmount, "cashAmount");
+    if (!cash.ok) return cash;
+
+    if (method.data === "upi" && (upi.data <= 0 || cash.data !== 0)) {
+        return { ok: false, message: "UPI entries need upiAmount > 0 and cashAmount = 0" };
+    }
+    if (method.data === "cash" && (cash.data <= 0 || upi.data !== 0)) {
+        return { ok: false, message: "Cash entries need cashAmount > 0 and upiAmount = 0" };
+    }
+    if (method.data === "both" && (upi.data <= 0 || cash.data <= 0)) {
+        return { ok: false, message: "Both entries need upiAmount > 0 and cashAmount > 0" };
+    }
+
+    const total = upi.data + cash.data;
+    if (total > MAX_AMOUNT) return { ok: false, message: "amount is too large" };
+
+    return {
+        ok: true,
+        data: {
+            paymentMethod: method.data,
+            upiAmount: upi.data,
+            cashAmount: cash.data,
+            amount: total,
+        },
+    };
+}
+
 function parseDate(value: unknown): ParseResult<Date> {
     if (typeof value !== "string" && !(value instanceof Date)) {
         return { ok: false, message: "date must be an ISO string or Date" };
@@ -68,12 +131,30 @@ export function parseCreatePayload(body: unknown): ParseResult<TransactionInput>
 
     const description = parseDescription(body.description);
     if (!description.ok) return description;
-    const amount = parseAmount(body.amount);
-    if (!amount.ok) return amount;
     const category = parseCategory(body.category);
     if (!category.ok) return category;
     const date = parseDate(body.date);
     if (!date.ok) return date;
+
+    if (body.paymentMethod !== undefined) {
+        const split = parsePaymentSplit(body);
+        if (!split.ok) return split;
+        return {
+            ok: true,
+            data: {
+                description: description.data,
+                amount: split.data.amount,
+                category: category.data,
+                date: date.data,
+                paymentMethod: split.data.paymentMethod,
+                upiAmount: split.data.upiAmount,
+                cashAmount: split.data.cashAmount,
+            },
+        };
+    }
+
+    const amount = parseAmount(body.amount);
+    if (!amount.ok) return amount;
 
     return {
         ok: true,
@@ -96,11 +177,6 @@ export function parseUpdatePayload(body: unknown): ParseResult<Partial<Transacti
         if (!r.ok) return r;
         updates.description = r.data;
     }
-    if (body.amount !== undefined) {
-        const r = parseAmount(body.amount);
-        if (!r.ok) return r;
-        updates.amount = r.data;
-    }
     if (body.category !== undefined) {
         const r = parseCategory(body.category);
         if (!r.ok) return r;
@@ -110,6 +186,19 @@ export function parseUpdatePayload(body: unknown): ParseResult<Partial<Transacti
         const r = parseDate(body.date);
         if (!r.ok) return r;
         updates.date = r.data;
+    }
+
+    if (body.paymentMethod !== undefined) {
+        const split = parsePaymentSplit(body);
+        if (!split.ok) return split;
+        updates.paymentMethod = split.data.paymentMethod;
+        updates.upiAmount = split.data.upiAmount;
+        updates.cashAmount = split.data.cashAmount;
+        updates.amount = split.data.amount;
+    } else if (body.amount !== undefined) {
+        const r = parseAmount(body.amount);
+        if (!r.ok) return r;
+        updates.amount = r.data;
     }
 
     if (Object.keys(updates).length === 0) {
@@ -160,6 +249,9 @@ interface TransactionLike {
     category: string;
     date: Date;
     type: string;
+    paymentMethod?: PaymentMethod;
+    upiAmount?: number;
+    cashAmount?: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -172,6 +264,9 @@ export function serializeTransaction(t: TransactionLike) {
         category: t.category,
         date: t.date,
         type: t.type,
+        paymentMethod: t.paymentMethod,
+        upiAmount: t.upiAmount,
+        cashAmount: t.cashAmount,
         createdAt: t.createdAt,
         updatedAt: t.updatedAt,
     };
