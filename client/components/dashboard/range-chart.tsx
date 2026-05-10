@@ -1,6 +1,6 @@
 "use client";
 
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
     ChartContainer,
     ChartLegend,
@@ -9,7 +9,7 @@ import {
     ChartTooltipContent,
     type ChartConfig,
 } from "@/components/ui/chart";
-import { formatCompact } from "@/lib/format";
+import { formatCompact, formatCurrency } from "@/lib/format";
 
 interface BucketRow {
     key: string;
@@ -27,17 +27,12 @@ const config = {
 export function RangeChart({ data }: { data: BucketRow[] }) {
     return (
         <ChartContainer config={config} className="aspect-auto h-[260px] w-full">
-            <AreaChart data={data} margin={{ left: 4, right: 8, top: 8, bottom: 0 }}>
-                <defs>
-                    <linearGradient id="rangeIncomeFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--color-income)" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="var(--color-income)" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="rangeExpenseFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--color-expense)" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="var(--color-expense)" stopOpacity={0} />
-                    </linearGradient>
-                </defs>
+            <BarChart
+                data={data}
+                margin={{ left: 4, right: 8, top: 16, bottom: 0 }}
+                barCategoryGap="20%"
+                barGap={4}
+            >
                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis
                     dataKey="label"
@@ -55,7 +50,7 @@ export function RangeChart({ data }: { data: BucketRow[] }) {
                     fontSize={11}
                 />
                 <ChartTooltip
-                    cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
+                    cursor={{ fill: "var(--muted)", opacity: 0.4 }}
                     content={
                         <ChartTooltipContent
                             indicator="dot"
@@ -65,29 +60,27 @@ export function RangeChart({ data }: { data: BucketRow[] }) {
                                         {String(name)}
                                     </span>
                                     <span className="font-mono font-medium tabular-nums">
-                                        {formatCompact(Number(value))}
+                                        {formatCurrency(Number(value))}
                                     </span>
                                 </div>
                             )}
                         />
                     }
                 />
-                <Area
-                    type="monotone"
+                <Bar
                     dataKey="income"
-                    stroke="var(--color-income)"
-                    strokeWidth={2}
-                    fill="url(#rangeIncomeFill)"
+                    fill="var(--color-income)"
+                    radius={[4, 4, 0, 0]}
+                    maxBarSize={28}
                 />
-                <Area
-                    type="monotone"
+                <Bar
                     dataKey="expense"
-                    stroke="var(--color-expense)"
-                    strokeWidth={2}
-                    fill="url(#rangeExpenseFill)"
+                    fill="var(--color-expense)"
+                    radius={[4, 4, 0, 0]}
+                    maxBarSize={28}
                 />
                 <ChartLegend content={<ChartLegendContent />} />
-            </AreaChart>
+            </BarChart>
         </ChartContainer>
     );
 }
