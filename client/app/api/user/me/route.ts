@@ -21,6 +21,7 @@ export async function GET(request: Request) {
                 id: String(user._id),
                 name: user.name,
                 email: user.email,
+                avatarUrl: user.avatarUrl ?? null,
                 createdAt: user.createdAt,
             },
         });

@@ -13,11 +13,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             const email = user.email?.toLowerCase().trim();
             if (!email) return false;
 
+            const avatarUrl =
+                typeof user.image === "string" && user.image.trim()
+                    ? user.image.trim().slice(0, 2048)
+                    : undefined;
+
             await ConnectDB();
             const existing = await User.findOne({ email });
             if (existing) {
+                let dirty = false;
                 if (!existing.emailVerified) {
                     existing.emailVerified = true;
+                    dirty = true;
+                }
+                if (avatarUrl && existing.avatarUrl !== avatarUrl) {
+                    existing.avatarUrl = avatarUrl;
+                    dirty = true;
+                }
+                if (dirty) {
                     await existing.save({ validateModifiedOnly: true });
                 }
                 return true;
@@ -29,6 +42,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 name: fallbackName.slice(0, 100),
                 email,
                 emailVerified: true,
+                avatarUrl,
             });
             return true;
         },

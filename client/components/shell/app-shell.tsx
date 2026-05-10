@@ -17,7 +17,7 @@ import { UserMenu } from "@/components/shell/user-menu";
 import { PRIMARY_NAV } from "@/components/shell/nav-config";
 
 interface AppShellProps {
-    user: { name?: string | null; email: string };
+    user: { name?: string | null; email: string; avatarUrl?: string | null };
     children: React.ReactNode;
 }
 

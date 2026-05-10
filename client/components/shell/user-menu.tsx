@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { LogOut, Moon, Sun, UserCircle } from "lucide-react";
 import { useTheme } from "next-themes";
 import toast from "react-hot-toast";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -20,7 +20,7 @@ import { initials } from "@/lib/format";
 import { api } from "@/lib/api";
 
 interface UserMenuProps {
-    user: { name?: string | null; email: string };
+    user: { name?: string | null; email: string; avatarUrl?: string | null };
 }
 
 export function UserMenu({ user }: UserMenuProps) {
@@ -54,8 +54,15 @@ export function UserMenu({ user }: UserMenuProps) {
                     className="h-9 gap-2 px-1.5"
                     aria-label="Account menu"
                 >
-                    <Avatar className="size-7">
-                        <AvatarFallback className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-xs font-semibold text-white">
+                    <Avatar className="size-7 ring-1 ring-border">
+                        {user.avatarUrl ? (
+                            <AvatarImage
+                                src={user.avatarUrl}
+                                alt={displayName}
+                                referrerPolicy="no-referrer"
+                            />
+                        ) : null}
+                        <AvatarFallback className="bg-foreground text-[11px] font-medium text-background">
                             {initials(displayName)}
                         </AvatarFallback>
                     </Avatar>

@@ -5,6 +5,7 @@ export interface IUser {
     email: string;
     password?: string;
     emailVerified: boolean;
+    avatarUrl?: string;
     createdAt: Date;
 }
 
@@ -35,6 +36,12 @@ const userSchema = new Schema<IUser>({
         type: Boolean,
         default: false,
         index: true,
+    },
+    avatarUrl: {
+        type: String,
+        required: false,
+        trim: true,
+        maxlength: 2048,
     },
     createdAt: {
         type: Date,

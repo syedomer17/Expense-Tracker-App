@@ -8,7 +8,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/shared/page-header";
@@ -31,6 +31,7 @@ interface MeResponse {
         id: string;
         name?: string | null;
         email: string;
+        avatarUrl?: string | null;
         createdAt?: string;
     };
 }
@@ -54,6 +55,13 @@ export default async function ProfilePage() {
                 <Card className="border-border/60">
                     <CardContent className="flex flex-col items-center gap-4 py-8 text-center">
                         <Avatar className="size-20 ring-1 ring-border">
+                            {user.avatarUrl ? (
+                                <AvatarImage
+                                    src={user.avatarUrl}
+                                    alt={displayName}
+                                    referrerPolicy="no-referrer"
+                                />
+                            ) : null}
                             <AvatarFallback className="bg-foreground text-2xl font-medium text-background">
                                 {initials(displayName)}
                             </AvatarFallback>
