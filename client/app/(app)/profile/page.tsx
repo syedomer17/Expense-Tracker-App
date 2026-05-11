@@ -33,6 +33,7 @@ interface MeResponse {
         email: string;
         avatarUrl?: string | null;
         createdAt?: string;
+        hasPassword?: boolean;
     };
 }
 
@@ -42,6 +43,7 @@ export default async function ProfilePage() {
     const user = data.user;
     const displayName =
         (user.name && user.name.trim()) || user.email.split("@")[0] || "Account";
+    const hasPassword = user.hasPassword !== false;
 
     return (
         <div className="flex flex-col gap-8">
@@ -101,10 +103,12 @@ export default async function ProfilePage() {
                             <UserRound className="size-3.5" />
                             Account
                         </TabsTrigger>
-                        <TabsTrigger value="security">
-                            <KeyRound className="size-3.5" />
-                            Security
-                        </TabsTrigger>
+                        {hasPassword ? (
+                            <TabsTrigger value="security">
+                                <KeyRound className="size-3.5" />
+                                Security
+                            </TabsTrigger>
+                        ) : null}
                     </TabsList>
 
                     <TabsContent value="account" className="mt-4">
@@ -126,22 +130,24 @@ export default async function ProfilePage() {
                         </Card>
                     </TabsContent>
 
-                    <TabsContent value="security" className="mt-4">
-                        <Card className="border-border/60">
-                            <CardHeader>
-                                <CardTitle className="text-base font-medium">
-                                    Change password
-                                </CardTitle>
-                                <CardDescription>
-                                    Use a strong password you&apos;re not using anywhere else.
-                                </CardDescription>
-                            </CardHeader>
-                            <Separator />
-                            <CardContent className="pt-6">
-                                <PasswordForm />
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                    {hasPassword ? (
+                        <TabsContent value="security" className="mt-4">
+                            <Card className="border-border/60">
+                                <CardHeader>
+                                    <CardTitle className="text-base font-medium">
+                                        Change password
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Use a strong password you&apos;re not using anywhere else.
+                                    </CardDescription>
+                                </CardHeader>
+                                <Separator />
+                                <CardContent className="pt-6">
+                                    <PasswordForm />
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    ) : null}
                 </Tabs>
             </div>
         </div>

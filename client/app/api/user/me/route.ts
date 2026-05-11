@@ -11,7 +11,7 @@ export async function GET(request: Request) {
 
         await ConnectDB();
 
-        const user = await User.findById(userId).lean();
+        const user = await User.findById(userId).select("+password").lean();
         if (!user) {
             return NextResponse.json({ message: "User not found" }, { status: 404 });
         }
@@ -23,6 +23,7 @@ export async function GET(request: Request) {
                 email: user.email,
                 avatarUrl: user.avatarUrl ?? null,
                 createdAt: user.createdAt,
+                hasPassword: Boolean(user.password),
             },
         });
     } catch (error) {
