@@ -1,63 +1,67 @@
-# Expense Tracker App (MERN)
+# Expense Tracker App
 
-A simple, fast, and personal Expense Tracker built with the MERN stack — created to track daily small expenses, upload receipts, and export reports. This repo contains a full-stack app (frontend + backend) with authentication, file upload, security middleware, and export features (CSV / PDF planned & PDF implemented).
+A personal finance tracker built as a single Next.js 16 application — track daily expenses and incomes, set savings goals, manage a wishlist, and receive daily / weekly / monthly email digests. Authentication supports email/password (with OTP verification + JWT refresh tokens) as well as Google and GitHub OAuth.
+
+Live: https://goals.syedomer.me
 
 ---
 
 ## Features
 
-* Add / edit / delete expenses and incomes
-* Upload receipt images (Multer)
-* Filter by date range and category
-* Dashboard with total spend and top categories
-* Authentication (JWT access + refresh tokens stored in httpOnly cookies)
-* Password reset and email confirmation (Nodemailer)
-* Basic analytics: monthly totals and category breakdown
-* Rate limiting and security middleware
-* PDF export: download all expenses & income as a single PDF with a click
-* Mobile-friendly responsive UI + basic dark mode
-* Small experiment with Node cluster + worker\_threads for report exports
+* Add / edit / delete expenses and incomes with categories and notes
+* Filter by date range, category, and free-text search
+* Dashboard with totals, top categories, and time-series charts
+* Excel (`.xlsx`) export for both expenses and incomes
+* Savings goals with progress tracking and email notifications on goal hit
+* Wishlist with funding progress and completion notifications
+* Email/password auth with OTP email verification and password reset flows
+* Google and GitHub OAuth via NextAuth v5
+* Short-lived JWT access tokens + httpOnly refresh tokens (rotation on use)
+* Daily / weekly / monthly digest emails via Vercel Cron
+* Mobile-friendly responsive UI with light/dark themes
 
 ---
 
 ## Tech stack
 
-**Frontend**
-
-* React (JavaScript)
-* Tailwind CSS
-* shadcn/ui
-
-**Backend**
-
-* Node.js + Express
-* MongoDB (Mongoose)
-* Multer (file uploads)
-* Nodemailer (emails)
-* jsonwebtoken (JWT)
-* worker\_threads (export experiments)
+* **Framework**: Next.js 16 (App Router) + React 19 + TypeScript
+* **Styling**: Tailwind CSS 4 + shadcn/ui + Radix primitives
+* **Database**: MongoDB via Mongoose
+* **Auth**: NextAuth v5 (Google + GitHub) + custom JWT/refresh-token flow with `bcryptjs` and `jsonwebtoken`
+* **Email**: Nodemailer (SMTP)
+* **Charts**: Recharts
+* **Exports**: `xlsx` (SheetJS)
+* **Scheduled jobs**: Vercel Cron (daily / weekly / monthly digest emails)
+* **Hosting**: Vercel
 
 ---
 
-## Repo structure (recommended)
+## Repo structure
 
 ```
 root
-├─ client/             # React frontend
-│  ├─ public/
-│  └─ src/
-│     ├─ components/
-│     ├─ pages/
-│     └─ utils/
-├─ server/             # Express backend
-│  ├─ config/
-│  ├─ controllers/
-│  ├─ middleware/
-│  ├─ models/
-│  ├─ routes/
-│  ├─ services/
-│  └─ utils/
-├─ .env.example
+├─ client/                    # Next.js 16 app (the entire application)
+│  ├─ app/
+│  │  ├─ (app)/               # Authenticated app routes
+│  │  ├─ (auth)/               # Login / register / verify / reset flows
+│  │  └─ api/                 # Route handlers
+│  │     ├─ auth/             # NextAuth + bridge routes
+│  │     ├─ cron/             # Daily / weekly / monthly digests
+│  │     ├─ dashboard/        # Dashboard summary
+│  │     ├─ expense/          # CRUD + overview + xlsx export
+│  │     ├─ income/           # CRUD + overview + xlsx export
+│  │     ├─ goals/            # Savings goals + progress
+│  │     ├─ wishlist/         # Wishlist items
+│  │     └─ user/             # Profile, password, OTP, refresh
+│  ├─ components/             # UI components (shadcn/ui + custom)
+│  ├─ lib/                    # DB, mailer, digests, helpers
+│  ├─ models/                 # Mongoose schemas
+│  ├─ utils/                  # Token helpers, date ranges
+│  ├─ auth.ts                 # NextAuth config
+│  ├─ vercel.json             # Cron schedules
+│  ├─ .env.example
+│  └─ package.json
+├─ LICENSE
 └─ README.md
 ```
 
@@ -65,234 +69,157 @@ root
 
 ## Getting started
 
-> These instructions assume you have Node.js and npm/yarn installed.
+Prerequisites: Node.js 20+, pnpm (recommended) or npm, and a MongoDB Atlas cluster (or any MongoDB instance).
 
-### 1) Clone the repo
+### 1) Clone and install
 
 ```bash
 git clone <repo-url>
-cd <repo-folder>
+cd Expense-Tracker-App/client
+pnpm install      # or: npm install
 ```
 
-### 2) Backend setup
+### 2) Configure environment
+
+Copy the example file and fill in your values:
 
 ```bash
-cd server
 cp .env.example .env
-# edit .env with your values
-npm install
-npm run dev    # or: npm run start (for production)
 ```
 
-**Typical server scripts (package.json)**
+See **Environment variables** below for the full list.
 
-```json
-{
-  "scripts": {
-    "dev": "nodemon src/index.js",
-    "start": "node dist/index.js",
-    "build": "...",
-    "test": "..."
-  }
-}
-```
-
-### 3) Frontend setup
+### 3) Run the dev server
 
 ```bash
-cd ../client
-npm install
-npm run dev
-# or `npm run build` + `npm run start` for production frontend
+pnpm dev          # or: npm run dev
+```
+
+Open http://localhost:3000.
+
+### 4) Production build
+
+```bash
+pnpm build && pnpm start
 ```
 
 ---
 
-## Environment variables (.env.example)
+## Environment variables
 
-```
-# Server
-PORT=3000
-MONGO_URI=mongodb+srv://<user>:<pass>@cluster0.mongodb.net/expense-tracker?retryWrites=true&w=majority
-JWT_ACCESS_SECRET=your_access_secret_here
-JWT_REFRESH_SECRET=your_refresh_secret_here
-ACCESS_TOKEN_EXPIRES=15m
-REFRESH_TOKEN_EXPIRES=7d
-COOKIE_DOMAIN=localhost
-COOKIE_SECURE=false
+All variables live in `client/.env`. A template is provided at `client/.env.example`.
 
-# Email
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USER=you@example.com
-SMTP_PASS=yourpassword
-FROM_EMAIL=no-reply@example.com
+| Variable | Required | Purpose |
+|---|---|---|
+| `MONGODB_URI` | yes | MongoDB connection string |
+| `JWT_SECRET` | yes | Signs the app's own short-lived access tokens |
+| `SMTP_HOST` | yes | SMTP host for OTP / digest / notification emails |
+| `SMTP_PORT` | yes | SMTP port (`465` for TLS, `587` for STARTTLS) |
+| `SMTP_USER` | yes | SMTP username |
+| `SMTP_PASS` | yes | SMTP password / app password |
+| `SMTP_FROM` | no | Display name for outgoing email; defaults to `SMTP_USER` |
+| `AUTH_SECRET` | yes | NextAuth session secret |
+| `AUTH_GOOGLE_ID` | yes (for Google) | Google OAuth client ID |
+| `AUTH_GOOGLE_SECRET` | yes (for Google) | Google OAuth client secret |
+| `AUTH_GITHUB_ID` | yes (for GitHub) | GitHub OAuth app ID |
+| `AUTH_GITHUB_SECRET` | yes (for GitHub) | GitHub OAuth app secret |
+| `NEXTAUTH_URL` | yes (prod) | Public URL of the deployed app |
+| `CRON_SECRET` | yes (for cron) | Bearer token Vercel sends to `/api/cron/*` |
+| `NEXT_PUBLIC_APP_URL` | recommended | Public app URL — used by digest emails to build absolute links |
+| `APP_URL` | optional | Server-only fallback for `NEXT_PUBLIC_APP_URL` |
 
-# File uploads
-UPLOAD_DIR=uploads
-MAX_FILE_SIZE=5000000
-
-# Other
-CLIENT_URL=http://localhost:5173
-```
-
-Adjust values to your environment and never commit `.env` to Git.
+`NODE_ENV` and `VERCEL_URL` are runtime-provided and do not need to be set manually.
 
 ---
 
-## Key endpoints (example)
+## Key API routes
 
-> All endpoints are relative to `http://localhost:3000` (or your `PORT`)
+All routes live under `client/app/api/` and are relative to the app's origin.
 
-### Auth
+### Auth & user
 
-* `POST /api/auth/register` — Register new user
-* `POST /api/auth/login` — Login (sets httpOnly cookies)
-* `POST /api/auth/logout` — Logout (clears cookies)
-* `POST /api/auth/refresh` — Refresh access token
-* `POST /api/auth/forgot-password` — Request password reset
-* `POST /api/auth/reset-password` — Reset password
+* `POST /api/user/register` — create account, sends OTP email
+* `POST /api/user/verify-email` — verify email with OTP
+* `POST /api/user/resend-verification` — resend verification OTP
+* `POST /api/user/login` — sets access + refresh cookies
+* `POST /api/user/logout` — clears cookies, revokes refresh token
+* `POST /api/user/refresh` — rotates access + refresh tokens
+* `POST /api/user/forgot-password` — sends reset OTP
+* `POST /api/user/reset-password` — reset password with OTP
+* `GET /api/user/me` — current user profile
+* `PATCH /api/user/profile` — update name / email
+* `POST /api/user/password` — change password
+* `GET|POST /api/auth/[...nextauth]` — NextAuth (Google / GitHub)
 
-### Expenses
+### Expenses & incomes
 
-* `GET /api/expenses` — List expenses (query: from, to, category, page)
-* `POST /api/expenses` — Create expense (supports `multipart/form-data` with receipt)
-* `GET /api/expenses/:id` — Get single expense
-* `PUT /api/expenses/:id` — Update expense
-* `DELETE /api/expenses/:id` — Delete expense
+* `GET /api/expense/getexpense` — list / filter
+* `POST /api/expense/addexpense`
+* `PUT /api/expense/updateexpense/:id`
+* `DELETE /api/expense/deleteexpense/:id`
+* `GET /api/expense/overview` — aggregated metrics
+* `GET /api/expense/downloadexcel` — `.xlsx` export
+* (Same shape under `/api/income/...`)
 
-### Exports
+### Dashboard, goals, wishlist
 
-* `GET /api/exports/pdf?from=YYYY-MM-DD&to=YYYY-MM-DD` — Generate & download PDF of expenses & income
-* `GET /api/exports/csv?from=...` — (planned) CSV export
+* `GET /api/dashboard` — combined summary
+* `GET|PUT /api/goals` — savings goal settings
+* `GET /api/goals/progress` — progress + history
+* `GET|POST /api/wishlist` — list / create wishlist items
+* `PATCH|DELETE /api/wishlist/:id` — update / delete item
 
-### Other
+### Cron (require `Authorization: Bearer ${CRON_SECRET}`)
 
-* `GET /api/dashboard/summary` — Monthly totals, top categories
+* `GET /api/cron/daily-digest` — daily summary email
+* `GET /api/cron/weekly-digest` — weekly summary email
+* `GET /api/cron/monthly-digest` — monthly summary email
 
----
-
-## PDF Download feature
-
-The app supports generating a PDF that includes all expenses and incomes in a date range. The frontend provides a **Download** button which calls the backend export endpoint (`/api/exports/pdf`). The server prepares the PDF (using a library such as `pdfkit`, `puppeteer`, or `html-pdf`) and responds with a file attachment. The browser then downloads the PDF on click.
-
-**Example server-side flow (pseudo)**
-
-```js
-// controller
-export const downloadPdf = async (req, res) => {
-  const { from, to } = req.query;
-  const data = await Expense.find({ date: { $gte: from, $lte: to }, user: req.user.id });
-  const pdfBuffer = await buildPdfFromData(data); // pdf generation util
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', 'attachment; filename="expenses.pdf"');
-  res.send(pdfBuffer);
-};
-```
-
-**Frontend**: call the endpoint and trigger a download using `fetch` with `blob()` or an anchor link to the endpoint (if using cookies for auth, make sure to include credentials).
-
-```js
-// example (frontend)
-const handleDownload = async () => {
-  const res = await fetch(`/api/exports/pdf?from=${from}&to=${to}`, { credentials: 'include' });
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'expenses.pdf';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-```
+Cron schedules are declared in `client/vercel.json`.
 
 ---
 
 ## Authentication flow
 
-* Login returns a short-lived access token and a long-lived refresh token.
-* Access token is sent as a Bearer token in `Authorization` headers for APIs OR the backend reads it from an httpOnly cookie.
-* Refresh token is stored in httpOnly cookie; refresh endpoint rotates tokens.
-* Protect routes with `authMiddleware` that verifies the access token and loads `req.user`.
+* **Email/password**: registration creates an unverified user and sends an OTP email. After verifying, login issues a short-lived JWT access token (15 min) and an httpOnly refresh token (7 days). `/api/user/refresh` rotates both.
+* **OAuth**: Google and GitHub via NextAuth v5. On first sign-in, a verified user is created automatically (no OTP needed since the provider already verified the email).
+* Both flows resolve to a single `User` document keyed by lowercased email.
 
 ---
 
-## Database (simple models)
+## Deployment
 
-**User** (example)
+The app is designed for Vercel:
 
-```js
-{
-  _id,
-  name,
-  email,
-  passwordHash,
-  avatarUrl,
-  createdAt
-}
-```
-
-**Expense**
-
-```js
-{
-  _id,
-  user: ObjectId(ref: 'User'),
-  amount: Number,
-  type: 'expense' | 'income',
-  category: String,
-  tags: [String],
-  note: String,
-  date: Date,
-  receiptUrl: String,
-  createdAt: Date
-}
-```
+1. Import the repo into Vercel (point the project at the `client/` directory).
+2. Add every variable from `.env.example` to the Vercel project settings.
+3. Set `NEXTAUTH_URL` and `NEXT_PUBLIC_APP_URL` to your production URL.
+4. Vercel automatically picks up the cron schedules from `client/vercel.json` and sends `Authorization: Bearer ${CRON_SECRET}` on each invocation.
 
 ---
 
-## Security & production notes
+## Roadmap
 
-* Use strong JWT secrets and rotate them when needed.
-* Serve cookies with `httpOnly`, `secure` flags (secure in production with HTTPS), and proper `SameSite` policy.
-* Enable rate limiting, helmet, and input validation (e.g., `express-validator` or `zod`).
-* Store uploads in a cloud bucket (S3/GCS) for production instead of local disk.
-* Use HTTPS for production; set `COOKIE_SECURE=true` and `COOKIE_DOMAIN` accordingly.
-
----
-
-## Development tips
-
-* Keep middleware small and focused — auth, validation, error handling, rate limiting.
-* Write small utilities early (date helpers, number formatting) to avoid duplication.
-* Use feature flags or env toggles for experimental multithreading or cluster setups.
-
----
-
-## Roadmap / Planned features
-
+* CSV export alongside Excel
 * Recurring expense reminders
-* Budget alerts (threshold-based notifications)
-* Shared spaces (family/team budgets)
-* Better analytics (weekly trends, burn rate)
-* CSV/Excel export and scheduled exports
+* Budget alerts (threshold notifications)
+* Shared spaces (family / team budgets)
+* Receipt image upload + OCR
 
 ---
 
 ## Contributing
 
-Contributions, feedback and suggestions are welcome! Create an issue or open a PR. If you want a code review, ping me and I’ll share the repo link.
+Issues and PRs are welcome. For larger changes, open an issue first to discuss the approach.
 
 ---
 
 ## License
 
-MIT — feel free to use and modify.
+MIT — see [LICENSE](./LICENSE).
 
 ---
 
 ## Contact
 
-If you'd like to try the app, test features, or collaborate — open an issue or reach out via your repo profile.
-
-Happy building! 🚀
+Built by Syed Omer Ali. Reach out via the repo issues page.

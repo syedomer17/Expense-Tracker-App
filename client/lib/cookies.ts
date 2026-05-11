@@ -8,7 +8,8 @@ const isProd = () => process.env.NODE_ENV === "production";
 
 export const ACCESS_TOKEN_COOKIE = "accessToken";
 export const REFRESH_TOKEN_COOKIE = "refreshToken";
-const REFRESH_COOKIE_PATH = "/api/user";
+const REFRESH_COOKIE_PATH = "/";
+const LEGACY_REFRESH_COOKIE_PATH = "/api/user";
 
 export function setAccessTokenCookie(response: NextResponse, token: string): void {
     response.cookies.set(ACCESS_TOKEN_COOKIE, token, {
@@ -43,6 +44,14 @@ export function clearAuthCookies(response: NextResponse): void {
         secure: isProd(),
         sameSite: "strict",
         path: REFRESH_COOKIE_PATH,
+        maxAge: 0,
+    });
+    // Also clear any stale refresh cookie left on the legacy /api/user path.
+    response.cookies.set(REFRESH_TOKEN_COOKIE, "", {
+        httpOnly: true,
+        secure: isProd(),
+        sameSite: "strict",
+        path: LEGACY_REFRESH_COOKIE_PATH,
         maxAge: 0,
     });
 }

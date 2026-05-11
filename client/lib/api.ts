@@ -10,13 +10,43 @@ export class ApiError extends Error {
 type FetchOptions = Omit<RequestInit, "body"> & {
     body?: unknown;
     json?: boolean;
+    skipAuthRetry?: boolean;
 };
+
+const REFRESH_PATH = "/api/user/refresh";
+let refreshInFlight: Promise<boolean> | null = null;
+
+function isRefreshablePath(path: string): boolean {
+    if (typeof window === "undefined") return false;
+    if (path === REFRESH_PATH || path.startsWith(REFRESH_PATH + "?")) return false;
+    if (path === "/api/user/login" || path === "/api/user/logout") return false;
+    return true;
+}
+
+async function refreshAccessToken(): Promise<boolean> {
+    if (refreshInFlight) return refreshInFlight;
+    refreshInFlight = (async () => {
+        try {
+            const r = await fetch(REFRESH_PATH, {
+                method: "POST",
+                credentials: "include",
+                cache: "no-store",
+            });
+            return r.ok;
+        } catch {
+            return false;
+        } finally {
+            refreshInFlight = null;
+        }
+    })();
+    return refreshInFlight;
+}
 
 export async function apiFetch<T = unknown>(
     path: string,
     options: FetchOptions = {}
 ): Promise<T> {
-    const { body, headers, json = true, ...rest } = options;
+    const { body, headers, json = true, skipAuthRetry, ...rest } = options;
     const init: RequestInit = {
         ...rest,
         headers: {
@@ -29,7 +59,15 @@ export async function apiFetch<T = unknown>(
         init.body = json ? JSON.stringify(body) : (body as BodyInit);
     }
 
-    const response = await fetch(path, init);
+    let response = await fetch(path, init);
+
+    if (response.status === 401 && !skipAuthRetry && isRefreshablePath(path)) {
+        const refreshed = await refreshAccessToken();
+        if (refreshed) {
+            response = await fetch(path, init);
+        }
+    }
+
     const contentType = response.headers.get("content-type") ?? "";
     const isJson = contentType.includes("application/json");
     const payload = isJson ? await response.json().catch(() => null) : null;
