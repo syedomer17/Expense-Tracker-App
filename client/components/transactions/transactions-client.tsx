@@ -35,6 +35,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/shared/page-header";
+import { Pagination } from "@/components/shared/pagination";
 import { StatCard } from "@/components/shared/stat-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import {
@@ -500,31 +501,13 @@ export function TransactionsClient({ kind }: Props) {
                         />
                     )}
 
-                    {totalPages > 1 ? (
-                        <div className="flex items-center justify-between gap-2 px-3 pt-3">
-                            <span className="text-xs text-muted-foreground">
-                                Page {page} of {totalPages}
-                            </span>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={page <= 1 || loading}
-                                    onClick={() => fetchList(page - 1)}
-                                >
-                                    Previous
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={page >= totalPages || loading}
-                                    onClick={() => fetchList(page + 1)}
-                                >
-                                    Next
-                                </Button>
-                            </div>
-                        </div>
-                    ) : null}
+                    <Pagination
+                        page={page}
+                        totalPages={totalPages}
+                        onPageChange={(p) => fetchList(p)}
+                        disabled={loading}
+                    />
+
                 </CardContent>
             </Card>
 

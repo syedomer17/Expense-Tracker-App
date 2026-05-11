@@ -73,6 +73,7 @@ const incomeSchema = new Schema<IIncome>(
 );
 
 incomeSchema.index({ userId: 1, date: -1 });
+incomeSchema.index({ userId: 1, category: 1, date: -1 });
 
 const Income: Model<IIncome> =
     (mongoose.models.Income as Model<IIncome>) ??

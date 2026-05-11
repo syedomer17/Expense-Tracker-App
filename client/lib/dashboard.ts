@@ -19,8 +19,8 @@ export {
 } from "@/lib/bucketSeries";
 
 const MONTHS_BACK = 12;
-const TOP_CATEGORIES = 5;
-const RECENT_LIMIT = 10;
+const TOP_CATEGORIES = 20;
+const RECENT_LIMIT = 25;
 
 export interface CategoryRow {
     category: string;

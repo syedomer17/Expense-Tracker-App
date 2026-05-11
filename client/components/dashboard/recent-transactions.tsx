@@ -13,8 +13,11 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/empty-state";
+import { Pagination } from "@/components/shared/pagination";
 import { TransactionRow } from "@/components/shared/transaction-row";
 import { cn } from "@/lib/utils";
+
+const PAGE_SIZE = 5;
 
 export interface RecentRow {
     id: string;
@@ -43,11 +46,27 @@ export function RecentTransactions({
     initialFilter?: FilterId;
 }) {
     const [filter, setFilter] = React.useState<FilterId>(initialFilter);
+    const [page, setPage] = React.useState(1);
 
     const filtered = React.useMemo(() => {
         if (filter === "all") return items;
         return items.filter((i) => i.type === filter);
     }, [items, filter]);
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+
+    React.useEffect(() => {
+        setPage(1);
+    }, [filter, items]);
+
+    React.useEffect(() => {
+        if (page > totalPages) setPage(totalPages);
+    }, [page, totalPages]);
+
+    const visible = React.useMemo(() => {
+        const start = (page - 1) * PAGE_SIZE;
+        return filtered.slice(start, start + PAGE_SIZE);
+    }, [filtered, page]);
 
     const totals = React.useMemo(() => {
         let income = 0;
@@ -109,22 +128,29 @@ export function RecentTransactions({
             </CardHeader>
             <CardContent className="p-2 sm:p-3">
                 {filtered.length ? (
-                    <div className="flex flex-col gap-1">
-                        {filtered.map((r) => (
-                            <TransactionRow
-                                key={`${r.type}-${r.id}`}
-                                transaction={{
-                                    id: r.id,
-                                    type: r.type,
-                                    description: r.description,
-                                    amount: r.amount,
-                                    category: r.category,
-                                    date: r.date,
-                                }}
-                                showActions={false}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        <div className="flex flex-col gap-1">
+                            {visible.map((r) => (
+                                <TransactionRow
+                                    key={`${r.type}-${r.id}`}
+                                    transaction={{
+                                        id: r.id,
+                                        type: r.type,
+                                        description: r.description,
+                                        amount: r.amount,
+                                        category: r.category,
+                                        date: r.date,
+                                    }}
+                                    showActions={false}
+                                />
+                            ))}
+                        </div>
+                        <Pagination
+                            page={page}
+                            totalPages={totalPages}
+                            onPageChange={setPage}
+                        />
+                    </>
                 ) : (
                     <EmptyState
                         icon={<Receipt className="size-4" />}

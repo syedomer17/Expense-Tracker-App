@@ -26,6 +26,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
+import { Pagination } from "@/components/shared/pagination";
 import { StatCard } from "@/components/shared/stat-card";
 import { CategoryBreakdown } from "@/components/dashboard/category-breakdown";
 import { RangeChart } from "@/components/dashboard/range-chart";
@@ -56,6 +57,8 @@ const RANGE_CHART_HINT: Record<DashboardRange, string> = {
     year: "Income vs expenses, monthly across 5 years.",
 };
 
+const CATEGORY_PAGE_SIZE = 5;
+
 export function DashboardClient({
     initialData,
     initialRange,
@@ -67,6 +70,7 @@ export function DashboardClient({
     const [data, setData] = React.useState<DashboardResult>(initialData);
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
+    const [categoryPage, setCategoryPage] = React.useState(1);
     const requestId = React.useRef(0);
 
     const loadRange = React.useCallback(async (next: DashboardRange) => {
@@ -95,6 +99,24 @@ export function DashboardClient({
     const d = data;
     const savings = d.summary.savingsRate;
     const savingsBar = Math.max(0, Math.min(100, savings));
+
+    const categoryTotalPages = Math.max(
+        1,
+        Math.ceil(d.topExpenseCategories.length / CATEGORY_PAGE_SIZE)
+    );
+
+    React.useEffect(() => {
+        setCategoryPage(1);
+    }, [d.topExpenseCategories]);
+
+    React.useEffect(() => {
+        if (categoryPage > categoryTotalPages) setCategoryPage(categoryTotalPages);
+    }, [categoryPage, categoryTotalPages]);
+
+    const visibleCategories = React.useMemo(() => {
+        const start = (categoryPage - 1) * CATEGORY_PAGE_SIZE;
+        return d.topExpenseCategories.slice(start, start + CATEGORY_PAGE_SIZE);
+    }, [d.topExpenseCategories, categoryPage]);
 
     return (
         <div className="flex flex-col gap-6">
@@ -260,10 +282,18 @@ export function DashboardClient({
                     </CardHeader>
                     <CardContent>
                         {d.topExpenseCategories.length ? (
-                            <CategoryBreakdown
-                                data={d.topExpenseCategories}
-                                accent="expense"
-                            />
+                            <>
+                                <CategoryBreakdown
+                                    data={visibleCategories}
+                                    accent="expense"
+                                />
+                                <Pagination
+                                    page={categoryPage}
+                                    totalPages={categoryTotalPages}
+                                    onPageChange={setCategoryPage}
+                                    className="px-0"
+                                />
+                            </>
                         ) : (
                             <EmptyState
                                 icon={<Receipt className="size-4" />}
