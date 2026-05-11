@@ -99,7 +99,6 @@ export function TransactionRow({
                             variant="ghost"
                             size="icon-sm"
                             aria-label="More options"
-                            className="opacity-0 transition group-hover:opacity-100 data-[state=open]:opacity-100"
                         >
                             <MoreHorizontal className="size-4" />
                         </Button>
