@@ -38,8 +38,6 @@ export function Pagination({
     className,
     siblingCount = 1,
 }: PaginationProps) {
-    if (totalPages <= 1) return null;
-
     const pages = buildPageList(page, totalPages, siblingCount);
     const prevDisabled = disabled || page <= 1;
     const nextDisabled = disabled || page >= totalPages;
