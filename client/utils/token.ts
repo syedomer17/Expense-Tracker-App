@@ -11,7 +11,7 @@ function requireEnv(name: string): string {
 
 const JWT_SECRET: string = requireEnv("JWT_SECRET");
 
-export const ACCESS_TOKEN_MAX_AGE_SECONDS = 60 * 15;
+export const ACCESS_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24;
 export const REFRESH_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
 export function generateAccessToken(userId: string): string {
