@@ -89,7 +89,7 @@ interface Props {
     kind: "income" | "expense";
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 5;
 
 export function TransactionsClient({ kind }: Props) {
     const isIncome = kind === "income";
