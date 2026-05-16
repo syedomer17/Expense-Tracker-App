@@ -12,12 +12,15 @@ function buildBaseUrl(): string {
 }
 
 async function resolveOrigin(): Promise<string> {
-    const fromEnv = buildBaseUrl();
-    if (fromEnv) return fromEnv;
     const h = await headers();
     const host = h.get("x-forwarded-host") ?? h.get("host");
     const proto = h.get("x-forwarded-proto") ?? "http";
-    return host ? `${proto}://${host}` : "http://localhost:3000";
+    if (host) {
+        return `${proto}://${host}`;
+    }
+    const fromEnv = buildBaseUrl();
+    if (fromEnv) return fromEnv;
+    return "http://localhost:3000";
 }
 
 export async function serverFetch<T = unknown>(

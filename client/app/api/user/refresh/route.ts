@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import RefreshToken from "@/models/refreshTokenModel";
+import User from "@/models/userModel";
 import { ConnectDB } from "@/lib/db";
 import {
     generateAccessToken,
@@ -45,6 +46,15 @@ export async function POST(request: Request) {
         }
 
         if (stored.expiresAt.getTime() <= Date.now()) {
+            return unauthorized();
+        }
+
+        const user = await User.findById(stored.userId).select("emailVerified").lean();
+        if (!user || !user.emailVerified) {
+            await RefreshToken.updateMany(
+                { userId: stored.userId, revokedAt: null },
+                { $set: { revokedAt: new Date() } }
+            );
             return unauthorized();
         }
 

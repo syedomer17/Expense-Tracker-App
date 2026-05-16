@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/lib/cookies";
+import { verifyAccessToken } from "@/utils/token";
 
 const PROTECTED_PREFIXES = [
     "/dashboard",
@@ -74,16 +75,18 @@ export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const access = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
     const refresh = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
+    const hasValidAccess = access ? Boolean(verifyAccessToken(access)) : false;
+    const hasInvalidAccess = Boolean(access) && !hasValidAccess;
 
     const isProtected = pathMatches(pathname, PROTECTED_PREFIXES);
     const isAuth = pathMatches(pathname, AUTH_PREFIXES);
     const isHome = pathname === "/";
 
-    if (access && (isAuth || isHome)) {
+    if (hasValidAccess && (isAuth || isHome)) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
-    if (!access && refresh) {
+    if (!hasValidAccess && refresh) {
         const setCookies = await tryRefresh(request);
         if (setCookies) {
             const response =
@@ -105,11 +108,19 @@ export async function proxy(request: NextRequest) {
         return response;
     }
 
-    if (isProtected && !access && !refresh) {
-        return NextResponse.redirect(new URL("/login", request.url));
+    if (isProtected && !hasValidAccess && !refresh) {
+        const response = NextResponse.redirect(new URL("/login", request.url));
+        if (hasInvalidAccess) {
+            response.cookies.delete(ACCESS_TOKEN_COOKIE);
+        }
+        return response;
     }
 
-    return NextResponse.next();
+    const response = NextResponse.next();
+    if (hasInvalidAccess) {
+        response.cookies.delete(ACCESS_TOKEN_COOKIE);
+    }
+    return response;
 }
 
 export const config = {

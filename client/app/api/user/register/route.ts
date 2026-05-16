@@ -2,14 +2,9 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import validator from "validator";
 import User from "@/models/userModel";
-import RefreshToken from "@/models/refreshTokenModel";
 import { ConnectDB } from "@/lib/db";
-import {
-    generateAccessToken,
-    generateRefreshToken,
-    REFRESH_TOKEN_MAX_AGE_SECONDS,
-} from "@/utils/token";
-import { setAccessTokenCookie, setRefreshTokenCookie } from "@/lib/cookies";
+import { issueOtp } from "@/lib/otp";
+import { sendOtpEmail } from "@/lib/mailer";
 
 const BCRYPT_SALT_ROUNDS = 12;
 
@@ -56,28 +51,54 @@ export async function POST(request: Request) {
         const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
         const user = await User.create({ name, email, password: hashedPassword });
 
-        const accessToken = generateAccessToken(String(user._id));
-        const { raw: refreshRaw, hash: refreshHash } = generateRefreshToken();
-        await RefreshToken.create({
+        const otpResult = await issueOtp({
             userId: user._id,
-            tokenHash: refreshHash,
-            expiresAt: new Date(Date.now() + REFRESH_TOKEN_MAX_AGE_SECONDS * 1000),
+            email: user.email,
+            purpose: "EMAIL_VERIFICATION",
         });
 
-        const response = NextResponse.json(
+        if (!otpResult.ok) {
+            return NextResponse.json(
+                { message: otpResult.message },
+                { status: otpResult.status }
+            );
+        }
+
+        try {
+            await sendOtpEmail({
+                to: user.email,
+                code: otpResult.code,
+                purpose: "EMAIL_VERIFICATION",
+            });
+        } catch (error) {
+            console.error("[register] failed to send verification email:", error);
+            return NextResponse.json(
+                {
+                    message:
+                        "Account created, but we could not send the verification code. Please use resend verification.",
+                    user: {
+                        id: String(user._id),
+                        name: user.name,
+                        email: user.email,
+                        emailVerified: false,
+                    },
+                },
+                { status: 201 }
+            );
+        }
+
+        return NextResponse.json(
             {
-                message: "Registered successfully",
+                message: "Registered successfully. Verify your email to continue.",
                 user: {
                     id: String(user._id),
                     name: user.name,
                     email: user.email,
+                    emailVerified: false,
                 },
             },
             { status: 201 }
         );
-        setAccessTokenCookie(response, accessToken);
-        setRefreshTokenCookie(response, refreshRaw);
-        return response;
     } catch (error) {
         if (error instanceof Error && (error as { code?: number }).code === 11000) {
             return NextResponse.json({ message: "Email already in use" }, { status: 409 });

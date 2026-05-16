@@ -17,9 +17,18 @@ export default async function AppLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { ok, data } = await serverFetch<MeResponse>("/api/user/me");
-    if (!ok || !data?.user) {
+    const { ok, status, data } = await serverFetch<MeResponse>("/api/user/me");
+    if (!ok && (status === 401 || status === 403)) {
         redirect("/login");
     }
-    return <AppShell user={data.user}>{children}</AppShell>;
+
+    const user = data?.user ?? {
+        id: "unknown",
+        email: "user@local",
+        name: "User",
+        avatarUrl: null,
+    };
+
+    // Non-auth failures (e.g. stale user record) should not force login loops.
+    return <AppShell user={user}>{children}</AppShell>;
 }

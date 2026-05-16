@@ -16,6 +16,17 @@ export async function GET(request: Request) {
             return NextResponse.json({ message: "User not found" }, { status: 404 });
         }
 
+        if (!user.emailVerified) {
+            return NextResponse.json(
+                {
+                    message: "Email not verified",
+                    emailVerified: false,
+                    email: user.email,
+                },
+                { status: 403 }
+            );
+        }
+
         return NextResponse.json({
             user: {
                 id: String(user._id),

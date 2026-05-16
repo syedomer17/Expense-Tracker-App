@@ -38,8 +38,11 @@ interface MeResponse {
 }
 
 export default async function ProfilePage() {
-    const { ok, data } = await serverFetch<MeResponse>("/api/user/me");
-    if (!ok || !data) redirect("/login");
+    const { ok, status, data } = await serverFetch<MeResponse>("/api/user/me");
+    if (!ok && (status === 401 || status === 403)) redirect("/login");
+    if (!data?.user) {
+        throw new Error("Failed to load user profile");
+    }
     const user = data.user;
     const displayName =
         (user.name && user.name.trim()) || user.email.split("@")[0] || "Account";

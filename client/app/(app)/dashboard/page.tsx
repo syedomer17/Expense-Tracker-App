@@ -15,10 +15,13 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
     const initialRange = "month" as const;
-    const { ok, data } = await serverFetch<{ dashboard: DashboardResult }>(
+    const { ok, status, data } = await serverFetch<{ dashboard: DashboardResult }>(
         `/api/dashboard?range=${initialRange}`
     );
-    if (!ok || !data) redirect("/login");
+    if (!ok && (status === 401 || status === 403)) redirect("/login");
+    if (!data?.dashboard) {
+        throw new Error("Failed to load dashboard data");
+    }
 
     return (
         <DashboardClient
